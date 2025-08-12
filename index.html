@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#001F3F">
+  <title>Cookbook</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-section="all">
+  <header class="topbar">
+    <button id="menuBtn" class="menu-btn" aria-label="Open menu">☰</button>
+    <h1 class="title">Cookbook</h1>
+    <div class="search-area">
+      <input id="searchInput" type="search" placeholder="Search recipes..." aria-label="Search recipes">
+      <select id="sortSelect" title="Sort">
+        <option value="updated">Recent</option>
+        <option value="name">Name</option>
+      </select>
+    </div>
+  </header>
+
+  <nav id="sideMenu" class="side-menu" aria-hidden="true" role="navigation">
+    <ul>
+      <li data-section="all" class="active">All</li>
+      <li data-section="breakfast">Breakfast</li>
+      <li data-section="lunch">Lunch</li>
+      <li data-section="snacks">Snacks</li>
+      <li data-section="baking">Baking</li>
+      <li class="spacer"></li>
+      <li id="backupBtn">Export all</li>
+      <li id="clearBtn">Clear all</li>
+    </ul>
+  </nav>
+
+  <div id="overlay" class="overlay hidden"></div>
+
+  <main id="main" class="main">
+    <section id="cards" class="cards" aria-live="polite"></section>
+  </main>
+
+  <button id="addBtn" class="add-btn" aria-label="Add recipe">＋</button>
+
+  <!-- Modals -->
+  <div id="detailModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="close" id="detailClose" aria-label="Close">&times;</button>
+      <div id="detailPhoto" class="detail-photo"></div>
+      <div class="detail-grid">
+        <div><strong>Time</strong><div id="detailTime"></div></div>
+        <div><strong>Ingredients</strong><div id="detailIngredients"></div></div>
+        <div><strong>Instructions</strong><div id="detailInstructions"></div></div>
+        <div><strong>Nutritional Info</strong><div id="detailNutrition"></div></div>
+      </div>
+      <div class="detail-actions">
+        <button id="editFromDetail" class="edit-btn">Edit</button>
+        <button id="deleteFromDetail" class="delete-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="formModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button class="close" id="formClose" aria-label="Close">&times;</button>
+      <form id="recipeForm">
+        <h2 id="formTitle">Add Recipe</h2>
+        <label>Name<input type="text" id="name" required></label>
+        <label>Time<input type="text" id="time" placeholder="e.g. 30 mins"></label>
+        <label>Ingredients<textarea id="ingredients" rows="4" placeholder="One ingredient per line"></textarea></label>
+        <label>Instructions<textarea id="instructions" rows="6" placeholder="Step-by-step instructions"></textarea></label>
+        <label>Nutritional Info<textarea id="nutrition" rows="3" placeholder="Calories, macros, etc."></textarea></label>
+        <label>Photo<input id="photo" type="file" accept="image/*" capture></label>
+        <label>Section
+          <select id="sectionSelect" required>
+            <option value="all">All</option>
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="snacks">Snacks</option>
+            <option value="baking">Baking</option>
+          </select>
+        </label>
+        <input type="hidden" id="editingId" value="">
+        <div class="form-actions">
+          <button type="submit" class="save-btn">Save</button>
+          <button type="button" id="exportBtn" class="secondary">Export JSON</button>
+          <button type="button" id="importBtn" class="secondary">Import JSON</button>
+          <input type="file" id="importFile" accept=".json" class="hidden-input">
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content small">
+      <p id="confirmText">Are you sure?</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px;">
+        <button id="confirmYes" class="save-btn">Yes</button>
+        <button id="confirmNo" class="secondary">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+<script src="app.js" defer></script>
+</body>
+</html>
