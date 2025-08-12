@@ -1,4 +1,6 @@
 // Final app script: IndexedDB storage, image compression, delete, backup, search, sort, PWA registration.
+// (This is the updated version with overlay / menu fixes)
+
 const DB_NAME = 'cookbook-db';
 const STORE_NAME = 'recipes';
 const DB_VERSION = 1;
@@ -67,11 +69,43 @@ const uuid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,
 
 function showToast(msg, timeout=2200){
   const t = el('toast');
+  if(!t) return;
   t.textContent = msg;
   t.classList.remove('hidden');
   t.classList.add('visible');
   setTimeout(()=>{ t.classList.remove('visible'); t.classList.add('hidden'); }, timeout);
 }
+
+// Overlay helpers: show/hide overlay and prevent background scroll
+function showOverlay(){
+  const overlay = el('overlay');
+  if(!overlay) return;
+  overlay.classList.remove('hidden');
+  overlay.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+}
+function hideOverlay(){
+  const overlay = el('overlay');
+  if(!overlay) return;
+  overlay.classList.remove('visible');
+  overlay.classList.add('hidden');
+  document.body.style.overflow = '';
+}
+// Clicking the overlay closes menus and modals
+document.addEventListener('click', (e)=>{
+  const overlay = el('overlay');
+  if(!overlay) return;
+  if(e.target === overlay){
+    const side = el('sideMenu');
+    if(side && side.classList.contains('open')) side.classList.remove('open');
+    // hide modals
+    const detail = el('detailModal'), form = el('formModal'), confirm = el('confirmModal');
+    if(detail) detail.classList.add('hidden');
+    if(form) form.classList.add('hidden');
+    if(confirm) confirm.classList.add('hidden');
+    hideOverlay();
+  }
+});
 
 // Image resize & compress: returns dataURL
 function resizeImageFile(file, maxDim=MAX_IMAGE_DIM, quality=IMAGE_QUALITY){
@@ -151,16 +185,18 @@ function openDetail(id){
   el('detailInstructions').textContent = r.instructions || '';
   el('detailNutrition').textContent = r.nutrition || '';
   el('detailModal').classList.remove('hidden');
+  showOverlay();
   currentDetailId = id;
 }
 
 // Close modals
-function closeDetail(){ el('detailModal').classList.add('hidden'); currentDetailId = null; }
-function closeForm(){ el('formModal').classList.add('hidden'); el('recipeForm').reset(); el('editingId').value = ''; autoSaveDraft(); }
+function closeDetail(){ el('detailModal').classList.add('hidden'); currentDetailId = null; hideOverlay(); }
+function closeForm(){ el('formModal').classList.add('hidden'); el('recipeForm').reset(); el('editingId').value = ''; autoSaveDraft(); hideOverlay(); }
 
 // Form open/edit
 function openForm(id=null){
   el('formModal').classList.remove('hidden');
+  showOverlay();
   if(id){
     const r = recipes.find(x=>x.id===id); if(!r) return;
     el('formTitle').textContent = 'Edit Recipe';
@@ -175,7 +211,6 @@ function openForm(id=null){
     el('formTitle').textContent = 'Add Recipe';
     el('recipeForm').reset();
     el('editingId').value = '';
-    // restore draft if exists
     const draft = localStorage.getItem('cookbook_draft');
     if(draft){
       try{ const d = JSON.parse(draft); el('name').value = d.name||''; el('time').value = d.time||''; el('ingredients').value = d.ingredients||''; el('instructions').value = d.instructions||''; el('nutrition').value = d.nutrition||''; el('sectionSelect').value = d.section||'all'; }catch(e){}
@@ -207,9 +242,10 @@ async function exportAll(){
 // Confirm modal helper
 function showConfirm(text, onYes){
   el('confirmText').textContent = text;
+  showOverlay();
   el('confirmModal').classList.remove('hidden');
   const yes = el('confirmYes'), no = el('confirmNo');
-  const cleanup = () => { el('confirmModal').classList.add('hidden'); yes.onclick = null; no.onclick = null; };
+  const cleanup = () => { el('confirmModal').classList.add('hidden'); yes.onclick = null; no.onclick = null; hideOverlay(); };
   yes.onclick = () => { cleanup(); onYes && onYes(); };
   no.onclick = () => { cleanup(); };
 }
@@ -245,8 +281,8 @@ async function loadAndRender(){
 // Wiring
 document.addEventListener('DOMContentLoaded', ()=>{
   const menuBtn = el('menuBtn'), side = el('sideMenu'), overlay = el('overlay');
-  menuBtn.addEventListener('click', ()=>{ side.classList.toggle('open'); overlay.classList.toggle('hidden'); overlay.classList.toggle('visible'); });
-  overlay.addEventListener('click', ()=>{ side.classList.remove('open'); overlay.classList.add('hidden'); overlay.classList.remove('visible'); });
+  menuBtn.addEventListener('click', ()=>{ side.classList.toggle('open'); if(side.classList.contains('open')) showOverlay(); else hideOverlay(); });
+  // overlay click handled globally by document click listener
 
   qsa('.side-menu li').forEach(li => {
     li.addEventListener('click', async ()=>{
@@ -256,8 +292,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
       applyTheme(s);
       renderCards(currentFilter, currentSearch, currentSort);
       side.classList.remove('open');
-      overlay.classList.add('hidden');
-      overlay.classList.remove('visible');
+      hideOverlay();
     });
   });
 
@@ -336,4 +371,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   }
 
   loadAndRender();
+
 });
+
